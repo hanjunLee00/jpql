@@ -3,6 +3,7 @@ package hellojpql;
 import jakarta.persistence.*;
 
 import java.util.Collection;
+import java.util.List;
 
 import static hellojpql.MemberType.ADMIN;
 
@@ -18,24 +19,35 @@ public class Main {
         tx.begin();
 
         try {
-            Team team = new Team();
-            team.setName("team1");
-            em.persist(team);
+            Team teamA = new Team();
+            teamA.setName("팀A");
+            em.persist(teamA);
+
+            Team teamB = new Team();
+            teamB.setName("팀B");
+            em.persist(teamB);
 
             Member member1 = new Member();
-            member1.setUsername("관리자");
+            member1.setUsername("회원1");
             member1.setAge(10);
-            member1.setTeam(team);
+            member1.setTeam(teamA);
             member1.setType(ADMIN);
 
             Member member2 = new Member();
-            member2.setUsername("관리자");
+            member2.setUsername("회원2");
             member2.setAge(10);
-            member2.setTeam(team);
+            member2.setTeam(teamA);
             member2.setType(ADMIN);
+
+            Member member3 = new Member();
+            member3.setUsername("회원3");
+            member3.setAge(10);
+            member3.setTeam(teamB);
+            member3.setType(ADMIN);
 
             em.persist(member1);
             em.persist(member2);
+            em.persist(member3);
 
             em.flush();
             em.clear();
@@ -44,13 +56,19 @@ public class Main {
 
             //컬렉션 값 연관 관계: 묵시적 내부 조인 발생 & 탐색X (더 이상 필드를 추가하지 못함)
             //묵시적 조인
-            String query = "select m From Team t join t.members m";
+            String query = "select t From Team t join fetch t.memberList m";
             em.createQuery(query);
 
-            Collection result = em.createQuery(query, Collection.class)
+            List<Team> result = em.createQuery(query, Team.class)
                     .getResultList();
 
-            System.out.println("s = " + result);
+            System.out.println("result = " + result.size());
+//            for(Team team : result) {
+//                System.out.println("team = " + team.getName() +"|"+ team.getMemberList().size());
+//                for (Member member : team.getMemberList()) {
+//                    System.out.println(" -> member = " + member);
+//                }
+//            }
             //반환 타입이 명확할 때
 //            TypedQuery<Member> selectMFromMemberM = em.createQuery("select m from Member m", Member.class);
 //            Member result = em.createQuery("select m from Member m where m.username = :username", Member.class)
